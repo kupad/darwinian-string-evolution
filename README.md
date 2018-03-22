@@ -1,4 +1,4 @@
-# Darwinian String Evolution - Climbing Mount Improbable
+# More Giddy Than A Monkey - Darwinian String Evolution
 
 In a lecture on probability and evolution called "Climbing Mount Improbable," Richard Dawkins describes a computer program
 inspired by the "infinite monkey theorem," that says "a monkey typing at random on a typewriter could eventually write the complete works of Shakespeare." 
