@@ -1,8 +1,8 @@
 
 
 (def alphabet (seq " ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
-
 (def target-string "MORE GIDDY IN MY DESIRES THAN A MONKEY")
+(def max-attempts 10000)
 
 (defn rand-letter 
   "generate a random letter in the alphabet"
@@ -23,8 +23,9 @@
 (defn str->phrase [str] (seq str))
 
 (defn monkey 
-  "monkeys will evolve until they get to the target-phrase or reach maximum-attempts
-  what really distinguishes one monkey from another is the next-phrase-selector"
+  "monkeys will evolve until they get to the target-phrase or reach maximum-attempts.
+  what really distinguishes one monkey from another is the next-phrase-selector.
+  next-phrase selector is a function that takes [alphabet target-phrase current-phrase] returns a new-phrase"
   [alphabet target-string max-attempts next-phrase-selector]
   (loop [target-phrase (str->phrase target-string)
          current-phrase (random-phrase alphabet (count target-phrase))
@@ -40,12 +41,14 @@
 
 ;; hoyle monkey
 
-(defn hoyle-monkey [alphabet target-string]
+(defn hoyle-monkey 
   "hoyle-monkeys keep trying random phrases"
+  [& {:keys [alphabet target-string max-attempts] 
+      :or {alphabet alphabet, target-string target-string, max-attempts max-attempts}}]
   (monkey
     alphabet
     target-string
-    10000
+    max-attempts
     (fn [alphabet target-phrase _] 
         (random-phrase alphabet (count target-phrase)))))
 
@@ -69,24 +72,27 @@
 (defn select
   "find the phrase in a generation that has the lowest hamming-distance to the target-phrase"
   [generation target-phrase]
-  (let [scored (map #(vector (hamming-distance % target-phrase) %) generation) 
-        min-pair (reduce (fn [p m] (if (< (first p) (first m)) p m)) scored)
-        min-phrase (second min-pair)]
-    min-phrase))
+  (->>
+    generation
+    (map #(vector (hamming-distance % target-phrase) %))  ;replace each mutation with (distance,mutation)
+    (reduce (fn [m p] (if (< (first p) (first m)) p m)))  ;find the (distance,mutation) with smallest distance
+    (second))) ;return the mutation
  
-(defn darwin-monkey [alphabet target-string]
+(defn darwin-monkey 
   "darwin monkeys produce a 'generation' of phrases that contain small random changes to a randomly generated string
   then select the phrase in the generation that is closest to the target. we repeat that until we arrive at the target string"
+  [& {:keys [alphabet target-string max-attempts] 
+      :or {alphabet alphabet, target-string target-string, max-attempts max-attempts}}]
   (monkey
     alphabet
     target-string
-    10000
+    max-attempts 
     (fn [alphabet target-phrase current-phrase]
         (select (next-generation alphabet current-phrase 50) target-phrase))))
 
 (defn- main [& args]
-  (let [hoyle-result  (hoyle-monkey alphabet target-string)
-        darwin-result (darwin-monkey alphabet target-string)]
+  (let [hoyle-result  (hoyle-monkey)
+        darwin-result (darwin-monkey)]
     (println)
     (println "hoyle: " hoyle-result)
     (println "darwin:" darwin-result)))
